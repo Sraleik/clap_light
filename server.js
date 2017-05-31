@@ -1,7 +1,6 @@
 'use strict';
 
 const Hapi = require('hapi');
-const mongojs = require('mongojs');
 
 // Create a server with a host and port
 const server = new Hapi.Server();
@@ -11,15 +10,9 @@ server.connection({
         cors: true
     }
 });
-
-//Connect to db
-server.app.db = mongojs('mongodb://'+ process.env.MONGO_USER + ':'+ process.env.MONGO_PASSWORD +'@' + process.env.MONGO_URL + '/' + process.env.MONGO_DATABASE);
-
 //Load plugins and start server
 server.register([
-    require('./routes/chimera'),
-    require('./routes/fight'),
-    require('./routes/rank')
+    require('./routes/root')
 ], (err) => {
 
     if (err) {
