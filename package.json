@@ -1,0 +1,16 @@
+{
+  "name": "clap_light",
+  "version": "0.0.1",
+  "description": "to switch on and of my light on snapping",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Sraleik",
+  "dependencies": {
+    "hapi": "^16.1.0",
+    "clap-detector": "^0.4.1"
+  }
+}

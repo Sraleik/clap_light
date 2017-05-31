@@ -1,0 +1,11 @@
+FROM alpine:3.4
+MAINTAINER Sraleik <sraleik@gmail.com>
+
+RUN apk add --update nodejs && \
+    rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+EXPOSE 8080
+
+CMD ["npm", "start" ]

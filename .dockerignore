@@ -1,0 +1,4 @@
+.git/*
+.gitlab-ci
+.gitignore
+node_modules/*

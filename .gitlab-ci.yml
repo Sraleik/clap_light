@@ -1,0 +1,120 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - release
+  - deploy
+
+variables:
+  CONTAINER_CURRENT_DEV_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-dev-$CI_BUILD_REF
+  CONTAINER_TEST_DEV_IMAGE: $CI_REGISTRY_IMAGE:dev-test
+  CONTAINER_LATEST_DEV_IMAGE: $CI_REGISTRY_IMAGE:dev-latest
+  CONTAINER_CURRENT_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-$CI_BUILD_REF
+  CONTAINER_LATEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-latest
+
+## DOCKER DEV BUILD
+
+manual_build_dockerdev:
+  stage: build
+  except:
+    - master
+    - production
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t $CONTAINER_CURRENT_DEV_IMAGE -f Dockerfile.dev .
+    - docker tag $CONTAINER_CURRENT_DEV_IMAGE $CONTAINER_TEST_DEV_IMAGE
+    - docker push $CONTAINER_CURRENT_DEV_IMAGE
+    - docker push $CONTAINER_TEST_DEV_IMAGE
+  when: manual
+  allow_failure: true
+
+manual_build_dockerdev_latest:
+  stage: build
+  only:
+    - master
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t $CONTAINER_CURRENT_DEV_IMAGE -f Dockerfile.dev .
+    - docker tag $CONTAINER_CURRENT_DEV_IMAGE $CONTAINER_LATEST_DEV_IMAGE
+    - docker push $CONTAINER_CURRENT_DEV_IMAGE
+    - docker push $CONTAINER_LATEST_DEV_IMAGE
+  when: manual
+  allow_failure: true
+
+####### MANUAL
+
+manual_build:
+  stage: build
+  except:
+    - recette
+    - production
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t $CONTAINER_CURRENT_IMAGE .
+    - docker push $CONTAINER_CURRENT_IMAGE
+  when: manual
+  allow_failure: false
+
+
+manual_deploy:
+  stage: deploy
+  image: cdrx/rancher-gitlab-deploy
+  environment:
+    name: recette
+    url: http://cv.sraleik.fr
+  except:
+    - recette
+    - production
+  script:
+    - upgrade --environment recette --stack barcode-summoners --service node-server --new-image $CONTAINER_CURRENT_IMAGE
+  when: manual
+  allow_failure: false
+
+####### RECETTE
+
+recette_build:
+  stage: build
+  only:
+    - recette
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t $CONTAINER_CURRENT_IMAGE .
+    - docker push $CONTAINER_CURRENT_IMAGE
+
+recette_deploy:
+  stage: deploy
+  image: cdrx/rancher-gitlab-deploy
+  environment:
+    name: recette
+    url: http://barcode-summoners-recette.sraleik.fr
+  only:
+    - recette
+  script:
+    - upgrade --environment recette --stack barcode-summoners --service node-server --new-image $CONTAINER_CURRENT_IMAGE
+
+####### PRODUCTION
+
+production_build:
+  stage: build
+  only:
+    - production
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t $CONTAINER_CURRENT_IMAGE .
+    - docker tag $CONTAINER_CURRENT_IMAGE $CONTAINER_LATEST_IMAGE
+    - docker push $CONTAINER_CURRENT_IMAGE
+    - docker push $CONTAINER_LATEST_IMAGE
+
+production_deploy:
+  stage: deploy
+  image: cdrx/rancher-gitlab-deploy
+  environment:
+    name: production
+    url: http://barcode-summoners.sraleik.fr
+  only:
+    - production
+  script:
+    - upgrade --environment production --stack barcode-summoners --service node-server --new-image $CONTAINER_CURRENT_IMAGE
