@@ -1,5 +1,8 @@
 image: docker:latest
 
+variables:
+  DOCKER_DRIVER: overlay
+
 services:
   - docker:dind
 
@@ -10,8 +13,9 @@ stages:
 
 variables:
   CONTAINER_CURRENT_DEV_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-dev-$CI_BUILD_REF
-  CONTAINER_TEST_DEV_IMAGE: $CI_REGISTRY_IMAGE:dev-test
+  CONTAINER_CURRENT_DEV_ARMV7_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-dev-armv7-$CI_BUILD_REF
   CONTAINER_LATEST_DEV_IMAGE: $CI_REGISTRY_IMAGE:dev-latest
+  CONTAINER_LATEST_DEV_ARMV7_IMAGE: $CI_REGISTRY_IMAGE:dev-armv7-latest
   CONTAINER_CURRENT_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-$CI_BUILD_REF
   CONTAINER_LATEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME-latest
 
@@ -25,9 +29,7 @@ manual_build_dockerdev:
   script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
     - docker build -t $CONTAINER_CURRENT_DEV_IMAGE -f Dockerfile.dev .
-    - docker tag $CONTAINER_CURRENT_DEV_IMAGE $CONTAINER_TEST_DEV_IMAGE
     - docker push $CONTAINER_CURRENT_DEV_IMAGE
-    - docker push $CONTAINER_TEST_DEV_IMAGE
   when: manual
   allow_failure: true
 
@@ -44,77 +46,29 @@ manual_build_dockerdev_latest:
   when: manual
   allow_failure: true
 
-####### MANUAL
-
-manual_build:
+manual_build_armv7_dockerdev:
   stage: build
   except:
-    - recette
+    - master
     - production
   script:
+    - docker run --rm --privileged multiarch/qemu-user-static:register --reset
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-    - docker build -t $CONTAINER_CURRENT_IMAGE .
-    - docker push $CONTAINER_CURRENT_IMAGE
+    - docker build -t $CONTAINER_CURRENT_DEV_ARMV7_IMAGE -f Dockerfile.armv7 .
+    - docker push $CONTAINER_CURRENT_DEV_ARMV7_IMAGE
   when: manual
-  allow_failure: false
+  allow_failure: true
 
-
-manual_deploy:
-  stage: deploy
-  image: cdrx/rancher-gitlab-deploy
-  environment:
-    name: recette
-    url: http://cv.sraleik.fr
-  except:
-    - recette
-    - production
-  script:
-    - upgrade --environment recette --stack barcode-summoners --service node-server --new-image $CONTAINER_CURRENT_IMAGE
-  when: manual
-  allow_failure: false
-
-####### RECETTE
-
-recette_build:
+manual_build_armv7_dockerdev_latest:
   stage: build
   only:
-    - recette
+    - master
   script:
+    - docker run --rm --privileged multiarch/qemu-user-static:register --reset
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-    - docker build -t $CONTAINER_CURRENT_IMAGE .
-    - docker push $CONTAINER_CURRENT_IMAGE
-
-recette_deploy:
-  stage: deploy
-  image: cdrx/rancher-gitlab-deploy
-  environment:
-    name: recette
-    url: http://barcode-summoners-recette.sraleik.fr
-  only:
-    - recette
-  script:
-    - upgrade --environment recette --stack barcode-summoners --service node-server --new-image $CONTAINER_CURRENT_IMAGE
-
-####### PRODUCTION
-
-production_build:
-  stage: build
-  only:
-    - production
-  script:
-    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-    - docker build -t $CONTAINER_CURRENT_IMAGE .
-    - docker tag $CONTAINER_CURRENT_IMAGE $CONTAINER_LATEST_IMAGE
-    - docker push $CONTAINER_CURRENT_IMAGE
-    - docker push $CONTAINER_LATEST_IMAGE
-
-production_deploy:
-  stage: deploy
-  image: cdrx/rancher-gitlab-deploy
-  environment:
-    name: production
-    url: http://barcode-summoners.sraleik.fr
-  only:
-    - production
-  script:
-    - upgrade --environment production --stack barcode-summoners --service node-server --new-image $CONTAINER_CURRENT_IMAGE
+    - docker build -t $CONTAINER_CURRENT_DEV_ARMV7_IMAGE -f Dockerfile.armv7 .
+    - docker tag $CONTAINER_CURRENT_DEV_ARMV7_IMAGE $CONTAINER_LATEST_DEV_ARMV7_IMAGE
+    - docker push $CONTAINER_CURRENT_DEV_ARMV7_IMAGE
+    - docker push $CONTAINER_LATEST_DEV_ARMV7_IMAGE
+  when: manual
+  allow_failure: true
