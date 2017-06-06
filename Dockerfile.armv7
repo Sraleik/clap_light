@@ -1,10 +1,10 @@
-FROM container4armhf/armhf-alpine:3.4 
+FROM hypriot/rpi-alpine:3.4
 MAINTAINER Sraleik <sraleik@gmail.com>
 
 RUN apk add --update nodejs bash alsa-utils sox && \
     rm -rf /var/cache/apk/*
 
-RUN npm install -g nodemon
+#RUN npm install -g nodemon
 
 WORKDIR /app
 
