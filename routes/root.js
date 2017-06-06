@@ -7,7 +7,7 @@ exports.register = function (server, options, next) {
         method: 'GET',
         path: '/',
         handler: function (request, reply) {
-          reply("hello world");
+          reply("hello Sraleik");
         }
     });
 
