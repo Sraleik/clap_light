@@ -7,12 +7,12 @@ var clapDetector = require('clap-detector');
 
 // Define configuration
 var clapConfig = {
-   AUDIO_SOURCE: 'alsa hw:1,0',
-   DETECTION_PERCENTAGE_START : '5%', 
-   DETECTION_PERCENTAGE_END: '5%',  
-   CLAP_AMPLITUDE_THRESHOLD: 0.4, 
-   CLAP_ENERGY_THRESHOLD: 0.3,  
-   MAX_HISTORY_LENGTH: 10 
+   AUDIO_SOURCE: 'alsa hw:' + process.env.MICRO,
+   DETECTION_PERCENTAGE_START : process.env.DETEC_START,
+   DETECTION_PERCENTAGE_END: process.env.DETEC_STOP,
+   CLAP_AMPLITUDE_THRESHOLD: process.env.DETEC_AMPL,
+   CLAP_ENERGY_THRESHOLD: process.env.DETEC_ENERGY,
+   MAX_HISTORY_LENGTH: 10
 };
 
 // Start clap detection
