@@ -1,6 +1,8 @@
 'use strict';
 
 const Hapi = require('hapi');
+var Vision = require('vision')
+var Handlebars = require('handlebars')
 var clapDetector = require('clap-detector');
 
 // Define configuration
@@ -39,7 +41,24 @@ server.connection({
         cors: true
     }
 });
+
 //Load plugins and start server
+
+server.register(Vision, function (err) {
+  if (err) {
+    console.log('Cannot register vision')
+  }
+
+  // configure template support
+  server.views({
+    engines: {
+      html: Handlebars
+    },
+    path: __dirname + '/views',
+    layout: 'layout'
+  })
+})
+
 server.register([
     require('./routes/root')
 ], (err) => {

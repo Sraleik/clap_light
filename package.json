@@ -11,6 +11,8 @@
   "author": "Sraleik",
   "dependencies": {
     "hapi": "^16.1.0",
+    "vision": "^4.1.1",
+    "handlebars": "^4.0.10",
     "clap-detector": "^0.4.1"
   }
 }
