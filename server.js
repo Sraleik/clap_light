@@ -1,10 +1,13 @@
 'use strict';
 
-console.log("Clap your hand")
-
 // Require the module
+var express = require('express')
+var expressVue = require('express-vue')
 var clapDetector = require('clap-detector');
 
+var app = express();
+
+console.log("Clap your hand")
 // Define configuration
 var clapConfig = {
    AUDIO_SOURCE: 'alsa hw:1,0',
@@ -31,3 +34,24 @@ clapDetector.onClaps(3, 2000, function(delay) {
 // Update the configuration
 //clapDetector.updateConfig({CLAP_ENERGY_THRESHOLD: 0.2});
 
+app.engine('vue', expressVue);
+app.set('view engine', 'vue');
+app.set('views', __dirname +  '/views');
+app.set('vue', {
+    componentsDir: __dirname + '/views/components',
+    defaultLayout: 'layout'
+});
+
+app.get('/', function(req, res){
+    var scope = {
+        data: {
+            title: 'Config Clap Light',
+            message: 'Hello!'
+        }
+    };
+    res.render('index', scope);
+});
+
+
+app.listen(8080);
+console.log('Express server listening on port 3000');

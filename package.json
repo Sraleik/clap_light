@@ -10,7 +10,9 @@
   },
   "author": "Sraleik",
   "dependencies": {
-    "hapi": "^16.1.0",
-    "clap-detector": "^0.4.1"
+    "clap-detector": "^0.4.1",
+    "express": "^4.15.3",
+    "express-vue": "^3.12.2",
+    "path": "^0.12.7"
   }
 }
